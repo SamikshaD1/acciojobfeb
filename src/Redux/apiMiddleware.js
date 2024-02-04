@@ -1,5 +1,3 @@
-// src/Redux/middleware/apiMiddleware.js
-
 import { postsData, isError, isLoading } from "./Slice/dataSlice";
 
 const fetchImage = async (postId) => {
@@ -13,12 +11,14 @@ const apiMiddleware = () => async (dispatch) => {
     const response = await fetch("https://jsonplaceholder.typicode.com/posts");
     const data = await response.json();
 
-    const postsWithImages = [];
-    for (const post of data) {
-      const imageUrl = await fetchImage(post.id);
-      postsWithImages.push({ ...post, imageUrl });
-    }
-    console.log(postsWithImages);
+    // Fetch image URLs for each post
+    const postsWithImages = await Promise.all(
+      data.map(async (post) => {
+        const imageUrl = await fetchImage(post.id);
+        return { ...post, imageUrl };
+      })
+    );
+
     dispatch(postsData(postsWithImages));
   } catch (error) {
     dispatch(isError(error.message));
